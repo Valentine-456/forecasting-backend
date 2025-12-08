@@ -4,9 +4,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+from app.api.forecast_router import router as forecast_router
+
 FRONTEND_DIST = Path(__file__).resolve().parent / "public"
 
 app = FastAPI(title="UAV Forecast Backend")
+
+app.include_router(forecast_router)
 
 app.mount(
     "/",
