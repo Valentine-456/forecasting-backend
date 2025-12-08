@@ -1,3 +1,4 @@
+from pathlib import Path
 import uuid
 from datetime import datetime
 
@@ -5,6 +6,7 @@ from app.services.model_registry import ModelRegistry
 from app.services.engines.mlr_engine import MlrEngine
 from app.dtos.ForecastRequest import ForecastRequest
 from app.dtos.ForecastResponse import ForecastResponse
+from app.services.telemetry_repository import TelemetryRepository
 
 class ForecastService:
     def __init__(self):
@@ -12,20 +14,27 @@ class ForecastService:
         self.engines = {
             "mlr": MlrEngine
         }
+        test_csv = Path("data/test_dataset.csv")
+        features = ["wind_speed", "payload_kg", "uav_mass"]
+        self.telemetry_repo = TelemetryRepository(test_csv, features)
+
 
     def run(self, req: ForecastRequest) -> ForecastResponse:
-        info = self.registry.get(req.model_id)
-        EngineClass = self.engines[info.engine]
+        model_info = self.registry.get(req.model_id)
 
-        engine = EngineClass(info.path)
+        if model_info.engine == "mlr":
+            engine = MlrEngine(
+                model_info.path,
+                telemetry_repo=self.telemetry_repo,
+            )
+        else:
+            raise NotImplementedError(model_info.engine)
+
         points = engine.predict(req.uav_state, req.horizon_seconds)
 
-        response = ForecastResponse(
-            forecast_id=str(uuid.uuid4()),
+        return ForecastResponse(
             model_id=req.model_id,
             generated_at=datetime.utcnow(),
             points=points,
         )
 
-        self.cache[response.forecast_id] = response
-        return response

@@ -20,8 +20,5 @@ def get_models(service: ForecastService = Depends(get_service)):
     ]
 
 @router.post("/run")
-def run(req: ForecastRequest, service: ForecastService = Depends(get_service)):
-    try:
-        return service.run(req)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def run_forecast(req: ForecastRequest, service: ForecastService = Depends(get_service)):
+    return service.run(req)
