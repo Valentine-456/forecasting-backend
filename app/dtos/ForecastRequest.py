@@ -3,11 +3,10 @@ from typing import List
 from datetime import datetime
 
 class UAVState(BaseModel):
-    soc: float
-    battery_current: float
+    soc_percentage: float
     wind_speed: float
-    payload_kg: float
-    uav_mass: float
+    payload: float
+    battery_capacity_mAh: int
 
 class ForecastRequest(BaseModel):
     uav_state: UAVState

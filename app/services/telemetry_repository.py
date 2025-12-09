@@ -36,29 +36,34 @@ class TelemetryRepository:
             raise ValueError(f"Flight {flight_id} not found in telemetry dataset.")
         return df.reset_index(drop=True)
 
-    def prepare_features(
-        self,
-        base_df: pd.DataFrame,
-        uav: UAVState,
-        replace_map: Optional[dict] = None,
-    ) -> pd.DataFrame:
+    def prepare_features(self, base_df, uav: UAVState, training_features=None):
         """
-        Takes a dataframe slice and replaces selected feature
-        values with values from UAVState.
+        Returns a dataframe with EXACTLY the same columns the MLR model was trained on.
+        Missing columns get filled with 0.
+        Some columns (wind_speed, payload, etc.) get overwritten using the UAVState.
         """
 
         df = base_df.copy()
 
-        # Replace relevant fields with request data
-        # (This matches your training features!)
-        df["wind_speed"] = uav.wind_speed
-        df["payload_kg"] = uav.payload_kg
-        df["uav_mass"] = uav.uav_mass
+        # Overwrite columns that exist both in training data and UAVState
+        replacements = {
+            "wind_speed": getattr(uav, "wind_speed", None),
+            "payload": getattr(uav, "payload", None),
+        }
 
-        # Additional replacements (future extension)
-        if replace_map:
-            for col, value in replace_map.items():
+        for col, value in replacements.items():
+            if value is not None and col in df.columns:
                 df[col] = value
 
-        # Ensure only the trained features are returned
-        return df[self.features].fillna(0.0)
+        # Create final output with exact training columns
+        out = {}
+
+        for col in training_features:
+            if col in df.columns:
+                out[col] = df[col].fillna(0.0)
+            else:
+                # Feature missing in telemetry → fill with 0
+                out[col] = 0.0
+
+        return pd.DataFrame(out)
+

@@ -15,7 +15,7 @@ class ForecastService:
             "mlr": MlrEngine
         }
         test_csv = Path("data/test_dataset.csv")
-        features = ["wind_speed", "payload_kg", "uav_mass"]
+        features = ["wind_speed", "payload"]
         self.telemetry_repo = TelemetryRepository(test_csv, features)
 
 
