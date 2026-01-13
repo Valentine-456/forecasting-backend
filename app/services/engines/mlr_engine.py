@@ -24,12 +24,7 @@ class MlrEngine(BaseEngine):
     ):
         super().__init__(model_path, telemetry_repo, horizon_step_sec)
 
-    def predict(self, uav: UAVState, horizon_seconds: int) -> List[ForecastPoint]:
-        # Load a random flight just to get base row structure
-        base_df = self.repo.get_random_test_flight()
-        last_row = base_df.tail(1)  # use last frame as template
-
-        # Convert initial SoC (%) to mAh
+    def predict(self, uav: UAVState, horizon_seconds: int):
         capacity_mAh = float(uav.battery_capacity_mAh)
         soc_mAh = capacity_mAh * (uav.soc_percentage / 100.0)
 
@@ -40,12 +35,14 @@ class MlrEngine(BaseEngine):
         dt = self.horizon_step_sec
 
         for t in range(dt, horizon_seconds + 1, dt):
-            X = self.repo.prepare_features(last_row, uav, self.training_features)
-            X = FeatureBuilder.add_is_flying(X)
+            # Preprocessing data before inference 
+            Xraw = self.repo.step(dt)
+            X = FeatureBuilder.add_is_flying(Xraw)
+            X = FeatureBuilder.insert_uav_state(X, uav, self.training_features)
 
+            # Inference and integration
             pred_current_A = self._predict_current(X)
             mAh_used = (dt / 3600.0) * (pred_current_A * 1000.0)
-
             soc_mAh -= mAh_used
             if soc_mAh < 0:
                 soc_mAh = 0.0
