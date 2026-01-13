@@ -8,9 +8,8 @@ from app.dtos.ForecastRequest import UAVState
 
 class TelemetryRepository:
     """
-    Loads a prepared test dataset ONCE and provides slices of telemetry
+    Loads a prepared test dataset and provides slices of telemetry
     ready for ML inference.
-
     The ML engines do NOT know about CSV files.
     """
 

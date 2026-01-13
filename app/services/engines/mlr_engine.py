@@ -5,10 +5,12 @@ from typing import List
 
 from app.dtos.ForecastRequest import UAVState
 from app.dtos.ForecastResponse import ForecastPoint
+from app.services.engines.base_engine import BaseEngine
 from app.services.telemetry_repository import TelemetryRepository
+from app.services.feature_builder import FeatureBuilder
 
 
-class MlrEngine:
+class MlrEngine(BaseEngine):
     """
     Predicts battery current for each forecast step,
     then converts it to SoC using Coulomb counting.
@@ -20,10 +22,7 @@ class MlrEngine:
         telemetry_repo: TelemetryRepository,
         horizon_step_sec: int = 5,
     ):
-        self.model = joblib.load(model_path)
-        self.repo = telemetry_repo
-        self.horizon_step_sec = horizon_step_sec
-        self.training_features = list(self.model.feature_names_in_)
+        super().__init__(model_path, telemetry_repo, horizon_step_sec)
 
     def predict(self, uav: UAVState, horizon_seconds: int) -> List[ForecastPoint]:
         # Load a random flight just to get base row structure
@@ -42,8 +41,9 @@ class MlrEngine:
 
         for t in range(dt, horizon_seconds + 1, dt):
             X = self.repo.prepare_features(last_row, uav, self.training_features)
+            X = FeatureBuilder.add_is_flying(X)
 
-            pred_current_A = float(self.model.predict(X)[0])
+            pred_current_A = self._predict_current(X)
             mAh_used = (dt / 3600.0) * (pred_current_A * 1000.0)
 
             soc_mAh -= mAh_used
