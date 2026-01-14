@@ -7,3 +7,5 @@ scikit-learn
 xgboost
 joblib
 python-multipart
+pytest
+pytest-cov

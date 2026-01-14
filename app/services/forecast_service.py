@@ -13,10 +13,6 @@ from app.services.telemetry_repository import TelemetryRepository
 class ForecastService:
     def __init__(self):
         self.registry = ModelRegistry()
-        self.engines = {
-            "mlr": MlrEngine,
-            "xgb": XgbEngine,
-        }
         test_csv = Path("data/test_dataset.csv")
         self.telemetry_repo = TelemetryRepository(test_csv)
 
