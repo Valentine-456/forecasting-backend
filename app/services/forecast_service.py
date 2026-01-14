@@ -2,6 +2,7 @@ from pathlib import Path
 import uuid
 from datetime import datetime
 
+from app.services.engines.xgb_ar_lag1_engine import XgbArEngine
 from app.services.engines.xgb_engine import XgbEngine
 from app.services.model_registry import ModelRegistry
 from app.services.engines.mlr_engine import MlrEngine
@@ -30,6 +31,11 @@ class ForecastService:
             )
         elif model_info.engine == "xgb":
             engine = XgbEngine(
+                model_info.path,
+                telemetry_repo=self.telemetry_repo,
+            )
+        elif model_info.engine == "xgb_ar_lag1":
+            engine = XgbArEngine(
                 model_info.path,
                 telemetry_repo=self.telemetry_repo,
             )

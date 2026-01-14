@@ -31,13 +31,13 @@ class ModelRegistry:
                 path=base / "xgb.pkl",
                 engine="xgb",
             ),
-            "xgb_ar": ModelInfo(
+            "xgb_ar_lag1": ModelInfo(
                 id="xgb_ar_lag1",
                 name="XGB_AR",
                 version="2.0",
                 description="XGBoost with AutoRegression",
                 path=base / "xgb_ar_lag1.pkl",
-                engine="xgb_ar",
+                engine="xgb_ar_lag1",
             ),
         }
 
