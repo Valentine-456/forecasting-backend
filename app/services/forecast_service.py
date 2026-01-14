@@ -2,6 +2,7 @@ from pathlib import Path
 import uuid
 from datetime import datetime
 
+from app.services.engines.xgb_engine import XgbEngine
 from app.services.model_registry import ModelRegistry
 from app.services.engines.mlr_engine import MlrEngine
 from app.dtos.ForecastRequest import ForecastRequest
@@ -12,10 +13,10 @@ class ForecastService:
     def __init__(self):
         self.registry = ModelRegistry()
         self.engines = {
-            "mlr": MlrEngine
+            "mlr": MlrEngine,
+            "xgb": XgbEngine,
         }
         test_csv = Path("data/test_dataset.csv")
-        features = ["wind_speed", "payload"]
         self.telemetry_repo = TelemetryRepository(test_csv)
 
 
@@ -24,6 +25,11 @@ class ForecastService:
 
         if model_info.engine == "mlr":
             engine = MlrEngine(
+                model_info.path,
+                telemetry_repo=self.telemetry_repo,
+            )
+        elif model_info.engine == "xgb":
+            engine = XgbEngine(
                 model_info.path,
                 telemetry_repo=self.telemetry_repo,
             )
